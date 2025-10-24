@@ -80,11 +80,19 @@
         
         <!-- Asset List (Left Panel) -->
         <div id="asset-list" class="w-full lg:w-96 p-4 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-y-auto no-scrollbar flex-shrink-0 transition-all duration-300 ease-in-out">
-            <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Available Assets (Click to View 3D)</h2>
-            
-            <!-- Category Tab Bar -->
-            <div id="category-tabs" class="flex justify-around p-1 bg-gray-100 dark:bg-gray-700 rounded-xl mb-4 shadow-inner">
+            <h2 class="text-xl font-semibold mb-3 text-gray-800 dark:text-gray-200">Asset Catalog</h2>
+
+            <!-- Category Tab Bar (Row 1: Main Categories) -->
+            <div id="category-tabs" class="flex justify-around p-1 bg-gray-100 dark:bg-gray-700 rounded-xl mb-2 shadow-inner">
                 <!-- Tabs will be dynamically created here by JS -->
+            </div>
+
+            <!-- Subcategory Bar (Row 2: Sub-categories) -->
+            <div id="subcategory-container" 
+                 class="mb-4 transition-all duration-300 ease-in-out opacity-0 max-h-0 overflow-hidden">
+                <div id="subcategory-tabs" class="flex flex-wrap gap-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-xl shadow-inner border border-gray-200 dark:border-gray-600">
+                    <!-- Subcategory buttons will be rendered here -->
+                </div>
             </div>
 
             <!-- Search Bar -->
@@ -147,38 +155,80 @@
 
     </div>
 
-    <script>
-        // Mock Asset Data
-        const ASSETS = {
-            'Characters': [
-                { id: 'C001', name: 'Standard Male Patient', description: 'A baseline model for training scenarios.', category: 'Characters', subType: 'Humanoid', complexity: 7, tags: ['man', 'patient', 'basic'], assetAddress: 'Characters/PatientMale_01' },
-                { id: 'C002', name: 'Pediatric Dummy', description: 'Model suitable for child resuscitation training.', category: 'Characters', subType: 'Mannequin', complexity: 5, tags: ['child', 'dummy', 'cpr'], assetAddress: 'Characters/Dummy_Pediatric_01' },
-                { id: 'C003', name: 'Female Surgical Staff', description: 'Customizable character for role-play.', category: 'Characters', subType: 'Humanoid', complexity: 8, tags: ['woman', 'surgeon', 'nurse'], assetAddress: 'Characters/StaffFemale_02' },
-            ],
-            'Equipment': [
-                { id: 'E001', name: 'Defibrillator (AED)', description: 'Interactive model for shocking procedure training.', category: 'Equipment', subType: 'Electronic', complexity: 6, tags: ['heart', 'electric', 'emergency'], assetAddress: 'Equipment/AED_01' },
-                { id: 'E002', name: 'IV Pump', description: 'Detailed model for infusion rate and alarm training.', category: 'Equipment', subType: 'Electronic', complexity: 9, tags: ['infusion', 'drug', 'medication'], assetAddress: 'Equipment/IVPump_02' },
-                { id: 'E003', name: 'Laparoscope', description: 'High-fidelity surgical instrument model.', category: 'Equipment', subType: 'Tool', complexity: 4, tags: ['surgery', 'scope', 'camera'], assetAddress: 'Equipment/Laparoscope_01' },
-            ],
-            'Procedures': [
-                { id: 'P001', name: 'CPR Basic Life Support', description: 'Step-by-step 3D sequence of BLS compressions.', category: 'Procedures', subType: 'Animation', complexity: 7, tags: ['resuscitation', 'training', 'chest'], assetAddress: 'Procedures/CPR_Animation_BLS' },
-                { id: 'P002', name: 'Surgical Gowning', description: 'Visualization of sterile field and donning process.', category: 'Procedures', subType: 'Tutorial', complexity: 3, tags: ['clean', 'sterile', 'scrubs'], assetAddress: 'Procedures/SurgicalGowning_Tutorial' },
-            ]
-        };
+    <script type="module">
+        // --- UPDATED MOCK ASSET DATA (Now a flat array with 'category' and 'subcategory') ---
+        const ASSETS_DATA = [
+            // Environments
+            { id: 'ENV01', name: 'Standard Operating Room', description: 'Full room environment for surgical training.', category: 'Environments', subcategory: 'Scene', subType: 'Room', complexity: 9, tags: ['OR', 'room', 'surgery'], assetAddress: 'Environments/OperatingRoom_01' },
+            { id: 'ENV02', name: 'ICU Bedside Prop Kit', description: 'Small props for bedside training environment setup.', category: 'Environments', subcategory: 'Environment Props', subType: 'Props', complexity: 4, tags: ['icu', 'props', 'bed'], assetAddress: 'Environments/ICU_PropKit' },
+            { id: 'ENV03', name: 'Laparoscopy Authoring Template', description: 'Pre-authored environment for specific procedure.', category: 'Environments', subcategory: 'Authored Environments', subType: 'Template', complexity: 6, tags: ['laparoscopy', 'template'], assetAddress: 'Environments/Laparoscopy_Template' },
+
+            // Tools (Mapped from old Equipment/Procedures)
+            { id: 'T001', name: 'Defibrillator (AED)', description: 'Interactive model for shocking procedure training.', category: 'Tools', subcategory: 'Tools', subType: 'Electronic', complexity: 6, tags: ['heart', 'electric', 'emergency'], assetAddress: 'Equipment/AED_01' },
+            { id: 'T002', name: 'IV Pump', description: 'Detailed model for infusion rate and alarm training.', category: 'Tools', subcategory: 'Tools', subType: 'Electronic', complexity: 9, tags: ['infusion', 'drug', 'medication'], assetAddress: 'Equipment/IVPump_02' },
+            { id: 'T003', name: 'Empty Syringe Vessel', description: 'Standard empty vessel model for liquid injection.', category: 'Tools', subcategory: 'Empty Vessels', subType: 'Container', complexity: 2, tags: ['syringe', 'injection', 'empty'], assetAddress: 'Tools/Syringe_Empty' },
+            { id: 'T004', name: 'CPR Basic Life Support Sequence', description: 'Step-by-step 3D sequence of BLS compressions.', category: 'Tools', subcategory: 'Procedures', subType: 'Animation', complexity: 7, tags: ['resuscitation', 'training', 'chest'], assetAddress: 'Procedures/CPR_Animation_BLS' },
+            { id: 'T005', name: 'Custom IV Bag (Saline)', description: 'User-defined custom vessel with programmed content.', category: 'Tools', subcategory: 'Custom Vessels', subType: 'Container', complexity: 3, tags: ['bag', 'saline', 'custom'], assetAddress: 'Tools/CustomIVBag_01' },
+            
+            // Characters
+            { id: 'C001', name: 'Standard Male Patient', description: 'A baseline model for training scenarios.', category: 'Characters', subcategory: 'Characters', subType: 'Humanoid', complexity: 7, tags: ['man', 'patient', 'basic'], assetAddress: 'Characters/PatientMale_01' },
+            { id: 'C002', name: 'Pediatric Dummy', description: 'Model suitable for child resuscitation training.', category: 'Characters', subcategory: 'Characters', subType: 'Mannequin', complexity: 5, tags: ['child', 'dummy', 'cpr'], assetAddress: 'Characters/Dummy_Pediatric_01' },
+            { id: 'C003', name: 'Female Surgical Scrubs', description: 'Outfit asset for female surgical staff.', category: 'Characters', subcategory: 'Outfits', subType: 'Clothing', complexity: 3, tags: ['scrubs', 'surgeon', 'clothing'], assetAddress: 'Characters/Outfit_ScrubsFemale' },
+            { id: 'C004', name: 'Default American Voice', description: 'Standard, clear voice profile for patient dialogue.', category: 'Characters', subcategory: 'Voice Profiles', subType: 'Audio', complexity: 1, tags: ['voice', 'audio', 'default'], assetAddress: 'Characters/VoiceProfile_01' },
+            { id: 'C005', name: 'Breathing Animations Set', description: 'A collection of breathing animations (normal, rapid, shallow).', category: 'Characters', subcategory: 'Animation Groups', subType: 'Animation', complexity: 2, tags: ['breathing', 'animations', 'set'], assetAddress: 'Characters/AnimGroup_Breathing' },
+            
+            // Other
+            { id: 'OTH01', name: 'Severe Laceration', description: 'A texture/model group representing a deep wound.', category: 'Other', subcategory: 'Wounds', subType: 'Visual', complexity: 4, tags: ['injury', 'skin', 'trauma'], assetAddress: 'Other/Wound_Laceration' },
+            { id: 'OTH02', name: 'Fever Condition Profile', description: 'A profile defining fever vitals and symptoms.', category: 'Other', subcategory: 'Conditions', subType: 'Profile', complexity: 2, tags: ['fever', 'condition', 'vitals'], assetAddress: 'Other/Condition_Fever' },
+            { id: 'OTH03', name: 'Patient History Intake Protocol', description: 'A step-by-step non-3D procedure for history taking.', category: 'Other', subcategory: 'Procedures', subType: 'Protocol', complexity: 3, tags: ['protocol', 'intake', 'non-3d'], assetAddress: 'Other/Protocol_Intake' },
+
+        ];
+        // --- END UPDATED MOCK ASSET DATA ---
+
 
         // Global state and helper structures
         let UnityInstance = null; 
-        let activeCategory = 'All';
+        let activeMainCategory = 'All';
+        let activeSubcategory = 'All'; // 'All' means all subcategories within the activeMainCategory
         let allAssets = [];
 
+        // --- CATEGORY AND SUBCATEGORY DEFINITIONS ---
         const CATEGORIES = {
             'All': { icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>', tooltip: 'View All Assets' },
-            'Characters': { icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>', tooltip: 'Patient & Staff Models' },
-            'Equipment': { icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10a1 1 0 011 1v11a1 1 0 01-1 1H7a1 1 0 01-1-1V8a1 1 0 011-1zm0 0l-2-2m2 2l2-2m-2 2v2M9 12h.01M15 12h.01M15 16h.01"></path></svg>', tooltip: 'Medical Devices & Tools' },
-            'Procedures': { icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>', tooltip: 'Surgical & Emergency Protocols' },
+            'Environments': { icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-2a3 3 0 013-3h3a3 3 0 013 3v2"></path></svg>', tooltip: 'Scenes, Props & Authored Environments' },
+            'Tools': { icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10a1 1 0 011 1v11a1 1 0 01-1 1H7a1 1 0 01-1-1V8a1 1 0 011-1zm0 0l-2-2m2 2l2-2m-2 2v2M9 12h.01M15 12h.01M15 16h.01"></path></svg>', tooltip: 'Equipment, Vessels & Procedures' },
+            'Characters': { icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>', tooltip: 'Models, Outfits & Voice Profiles' },
+            'Other': { icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path></svg>', tooltip: 'Wounds, Conditions, & Miscellaneous' },
         };
+
+        const SUBCATEGORIES = {
+            'Environments': [
+                { name: 'Scene', key: 'Scene' },
+                { name: 'Authored Environments', key: 'Authored Environments' },
+                { name: 'Environment Props', key: 'Environment Props' }
+            ],
+            'Tools': [
+                { name: 'Tools', key: 'Tools' },
+                { name: 'Procedures', key: 'Procedures' },
+                { name: 'Empty Vessels', key: 'Empty Vessels' },
+                { name: 'Custom Vessels', key: 'Custom Vessels' }
+            ],
+            'Characters': [
+                { name: 'Characters', key: 'Characters' },
+                { name: 'Outfits', key: 'Outfits' },
+                { name: 'Animation Groups', key: 'Animation Groups' },
+                { name: 'Voice Profiles', key: 'Voice Profiles' }
+            ],
+            'Other': [
+                { name: 'Procedures', key: 'Procedures' },
+                { name: 'Conditions', key: 'Conditions' },
+                { name: 'Wounds', key: 'Wounds' }
+            ]
+        };
+        // --- END CATEGORY AND SUBCATEGORY DEFINITIONS ---
         
         // --- Firebase Setup (Required to prevent runtime errors in Canvas) ---
+        // Note: Imports are outside this script block in the HTML standard for modules.
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         // --- END Firebase Setup ---
@@ -308,12 +358,13 @@
          * @param {object} asset - The full asset object to send to Unity.
          */
         function sendAssetDataToUnity(asset) {
+            // Note: The category property is passed here, now representing the main category.
             const payloadObject = {
                 Type: asset.category, 
                 Address: asset.assetAddress, 
                 AssetId: asset.id,
                 AssetComplexity: asset.complexity,
-                AdditionalData: `Viewing asset ${asset.id}`
+                AdditionalData: `Viewing asset ${asset.id}, Subcategory: ${asset.subcategory}`
             };
 
             const jsonPayload = JSON.stringify(payloadObject);
@@ -401,14 +452,7 @@
             if (assetToUpdate) {
                 assetToUpdate.assetAddress = newAddress;
 
-                // 2. Update the structured ASSETS object (for integrity)
-                const category = assetToUpdate.category;
-                const index = ASSETS[category].findIndex(a => a.id === assetId);
-                if (index > -1) {
-                    ASSETS[category][index].assetAddress = newAddress;
-                }
-
-                // 3. Re-render the UI
+                // 2. Re-render the UI
                 renderAssetDetails(assetToUpdate); // Re-render the detail panel
                 renderFilteredList(document.getElementById('asset-search').value); // Re-render the list to update the card
             }
@@ -444,7 +488,8 @@
             assetDetailContent.innerHTML = `
                 <div class="w-full">
                     <h2 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-2">${asset.name}</h2>
-                    <p class="text-indigo-600 dark:text-emerald-400 text-lg mb-6">${asset.category} Asset | ID: ${asset.id}</p>
+                    <!-- Show both category and subcategory -->
+                    <p class="text-indigo-600 dark:text-emerald-400 text-lg mb-6">${asset.category} / ${asset.subcategory} | ID: ${asset.id}</p>
                     
                     <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl border border-gray-200 dark:border-gray-600 shadow-inner">
                         <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Description</h3>
@@ -487,16 +532,17 @@
         }
 
         /**
-         * Selects a category tab and triggers a re-render of the asset list.
-         * @param {string} categoryName - The category to select ('All', 'Characters', etc.).
+         * Selects a main category tab and triggers a re-render.
+         * @param {string} categoryName - The main category to select ('All', 'Environments', etc.).
          */
-        function selectCategory(categoryName) {
-            activeCategory = categoryName;
+        function selectMainCategory(categoryName) {
+            activeMainCategory = categoryName;
+            activeSubcategory = 'All'; // Reset subcategory when main category changes
 
             // Update Tab UI
-            document.querySelectorAll('.tab-button').forEach(btn => {
+            document.querySelectorAll('.main-tab-button').forEach(btn => {
                 const category = btn.getAttribute('data-category');
-                if (category === activeCategory) {
+                if (category === activeMainCategory) {
                     btn.classList.add('bg-emerald-500', 'text-gray-900', 'shadow-md');
                     btn.classList.remove('text-gray-600', 'hover:bg-gray-200', 'dark:text-gray-300', 'dark:hover:bg-gray-600');
                 } else {
@@ -505,12 +551,83 @@
                 }
             });
 
+            renderSubcategoryTabs();
             document.getElementById('asset-search').value = '';
             renderFilteredList('');
         }
 
         /**
-         * Filters the asset list based on the active category and search term.
+         * Renders the subcategory tabs for the active main category.
+         */
+        function renderSubcategoryTabs() {
+            const container = document.getElementById('subcategory-tabs');
+            const containerWrapper = document.getElementById('subcategory-container');
+            container.innerHTML = '';
+
+            if (activeMainCategory === 'All' || !SUBCATEGORIES[activeMainCategory]) {
+                // Hide the subcategory bar
+                containerWrapper.classList.add('opacity-0', 'max-h-0');
+                containerWrapper.classList.remove('opacity-100', 'max-h-48');
+                return;
+            }
+
+            // Show the subcategory bar
+            containerWrapper.classList.remove('opacity-0', 'max-h-0');
+            containerWrapper.classList.add('opacity-100', 'max-h-48'); // max-h-48 allows smooth transition
+
+            // Add 'All' subcategory tab first
+            createSubcategoryButton({ name: 'All', key: 'All' }, container);
+
+            // Add specific subcategory tabs
+            SUBCATEGORIES[activeMainCategory].forEach(sub => {
+                createSubcategoryButton(sub, container);
+            });
+        }
+
+        /**
+         * Creates and appends a single subcategory button.
+         * @param {object} subcategory - The subcategory data.
+         * @param {HTMLElement} container - The container element.
+         */
+        function createSubcategoryButton(subcategory, container) {
+            const tabButton = document.createElement('button');
+            const isActive = subcategory.key === activeSubcategory;
+
+            // FIX: Added 'cursor-pointer' class
+            tabButton.className = `subcategory-button cursor-pointer px-3 py-1 text-xs font-medium rounded-full transition duration-150 shadow-sm
+                ${isActive ? 'bg-indigo-500 text-white' : 'text-gray-600 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500'}`;
+            tabButton.textContent = subcategory.name;
+            tabButton.setAttribute('data-subcategory', subcategory.key);
+            tabButton.onclick = () => selectSubcategory(subcategory.key);
+            container.appendChild(tabButton);
+        }
+
+
+        /**
+         * Selects a subcategory tab and triggers a re-render.
+         * @param {string} subcategoryName - The subcategory to select ('Scene', 'Tools', etc.).
+         */
+        function selectSubcategory(subcategoryName) {
+            activeSubcategory = subcategoryName;
+
+            // Update Tab UI
+            document.querySelectorAll('.subcategory-button').forEach(btn => {
+                const subcategory = btn.getAttribute('data-subcategory');
+                if (subcategory === activeSubcategory) {
+                    btn.classList.add('bg-indigo-500', 'text-white');
+                    btn.classList.remove('bg-gray-200', 'dark:bg-gray-600', 'text-gray-600', 'dark:text-gray-300', 'hover:bg-gray-300', 'dark:hover:bg-gray-500');
+                } else {
+                    btn.classList.remove('bg-indigo-500', 'text-white');
+                    btn.classList.add('bg-gray-200', 'dark:bg-gray-600', 'text-gray-600', 'dark:text-gray-300', 'hover:bg-gray-300', 'dark:hover:bg-gray-500');
+                }
+            });
+
+            document.getElementById('asset-search').value = '';
+            renderFilteredList('');
+        }
+
+        /**
+         * Filters the asset list based on the active main category, subcategory, and search term.
          * @param {string} searchTerm - The text entered in the search box.
          */
         function renderFilteredList(searchTerm = '') {
@@ -519,20 +636,31 @@
 
             let currentList = allAssets;
 
-            if (activeCategory !== 'All') {
-                currentList = allAssets.filter(asset => asset.category === activeCategory);
+            // 1. Filter by Main Category
+            if (activeMainCategory !== 'All') {
+                currentList = currentList.filter(asset => asset.category === activeMainCategory);
             }
 
+            // 2. Filter by Subcategory (only if a main category is selected AND a specific subcategory is chosen)
+            if (activeMainCategory !== 'All' && activeSubcategory !== 'All') {
+                 currentList = currentList.filter(asset => asset.subcategory === activeSubcategory);
+            }
+
+            // 3. Filter by Search Term
             if (searchTerm) {
                 const lowerSearchTerm = searchTerm.toLowerCase();
                 currentList = currentList.filter(asset => {
-                    const searchString = `${asset.name} ${asset.id} ${asset.description} ${asset.subType} ${asset.tags ? asset.tags.join(' ') : ''} ${asset.assetAddress || ''}`.toLowerCase();
+                    const searchString = `${asset.name} ${asset.id} ${asset.description} ${asset.subType} ${asset.category} ${asset.subcategory} ${asset.tags ? asset.tags.join(' ') : ''} ${asset.assetAddress || ''}`.toLowerCase();
                     return searchString.includes(lowerSearchTerm);
                 });
             }
             
             if (currentList.length === 0) {
-                container.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 p-6 rounded-xl bg-white dark:bg-gray-700 shadow-inner">No assets found in ${activeCategory} matching your search.</p>`;
+                const filterText = activeMainCategory === 'All' 
+                    ? 'All Assets' 
+                    : activeMainCategory + (activeSubcategory !== 'All' ? ' / ' + activeSubcategory : '');
+
+                container.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 p-6 rounded-xl bg-white dark:bg-gray-700 shadow-inner">No assets found in ${filterText} matching your search.</p>`;
             } else {
                 currentList.forEach(asset => {
                     const button = document.createElement('button');
@@ -540,7 +668,8 @@
                     button.innerHTML = `
                         <div class="flex flex-col">
                             <span class="font-bold text-base text-indigo-700 dark:text-emerald-400">${asset.name}</span>
-                            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">ID: ${asset.id} | Type: ${asset.category} | Address: ${asset.assetAddress || 'N/A'}</span>
+                            <!-- Show both category and subcategory -->
+                            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">ID: ${asset.id} | Type: ${asset.category} / ${asset.subcategory} | Address: ${asset.assetAddress || 'N/A'}</span>
                             <span class="text-sm text-gray-600 dark:text-gray-300 mt-1">${asset.description.substring(0, 80)}...</span>
                         </div>
                     `;
@@ -590,24 +719,22 @@
          * Initializes the asset data, tabs, and event listeners.
          */
         function initializeAssetList() {
-            // 1. Flatten all assets into one array
-            Object.keys(ASSETS).forEach(category => {
-                ASSETS[category].forEach(asset => allAssets.push(asset));
-            });
+            // 1. Set allAssets from the new flat data array
+            allAssets = ASSETS_DATA;
 
-            // 2. Initialize Category Tabs
+            // 2. Initialize Category Tabs (Main tabs)
             const tabsContainer = document.getElementById('category-tabs');
             Object.keys(CATEGORIES).forEach(category => {
                 const tabButton = document.createElement('button');
-                tabButton.className = 'tab-button flex-1 p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition duration-150 relative';
+                tabButton.className = 'main-tab-button flex-1 p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition duration-150 relative';
                 tabButton.innerHTML = CATEGORIES[category].icon;
                 tabButton.setAttribute('data-category', category);
-                tabButton.onclick = () => selectCategory(category);
+                tabButton.onclick = () => selectMainCategory(category);
                 
                 // Tooltip setup
                 tabButton.onmouseover = () => showTooltip(tabButton, CATEGORIES[category].tooltip);
                 tabButton.onmouseleave = hideTooltip;
-                tabButton.onfocus = () => selectCategory(category);
+                tabButton.onfocus = () => selectMainCategory(category);
 
                 tabsContainer.appendChild(tabButton);
             });
@@ -622,8 +749,8 @@
                 }, 150);
             });
 
-            // 4. Select default category and render list
-            selectCategory(activeCategory);
+            // 4. Select default category, render subcategories (hidden) and render list
+            selectMainCategory(activeMainCategory);
 
             // 5. Select the first asset for display in the detail panel
             if (allAssets.length > 0) {
