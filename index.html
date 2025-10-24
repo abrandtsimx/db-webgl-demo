@@ -135,20 +135,21 @@
 
     <script>
         // Mock Asset Data
+        // **UPDATED**: Added 'assetAddress' field to all entries.
         const ASSETS = {
             'Characters': [
-                { id: 'C001', name: 'Standard Male Patient', description: 'A baseline model for training scenarios.', category: 'Characters', subType: 'Humanoid', complexity: 7, tags: ['man', 'patient', 'basic'] },
-                { id: 'C002', name: 'Pediatric Dummy', description: 'Model suitable for child resuscitation training.', category: 'Characters', subType: 'Mannequin', complexity: 5, tags: ['child', 'dummy', 'cpr'] },
-                { id: 'C003', name: 'Female Surgical Staff', description: 'Customizable character for role-play.', category: 'Characters', subType: 'Humanoid', complexity: 8, tags: ['woman', 'surgeon', 'nurse'] },
+                { id: 'C001', name: 'Standard Male Patient', description: 'A baseline model for training scenarios.', category: 'Characters', subType: 'Humanoid', complexity: 7, tags: ['man', 'patient', 'basic'], assetAddress: 'Characters/PatientMale_01' },
+                { id: 'C002', name: 'Pediatric Dummy', description: 'Model suitable for child resuscitation training.', category: 'Characters', subType: 'Mannequin', complexity: 5, tags: ['child', 'dummy', 'cpr'], assetAddress: 'Characters/Dummy_Pediatric_01' },
+                { id: 'C003', name: 'Female Surgical Staff', description: 'Customizable character for role-play.', category: 'Characters', subType: 'Humanoid', complexity: 8, tags: ['woman', 'surgeon', 'nurse'], assetAddress: 'Characters/StaffFemale_02' },
             ],
             'Equipment': [
-                { id: 'E001', name: 'Defibrillator (AED)', description: 'Interactive model for shocking procedure training.', category: 'Equipment', subType: 'Electronic', complexity: 6, tags: ['heart', 'electric', 'emergency'] },
-                { id: 'E002', name: 'IV Pump', description: 'Detailed model for infusion rate and alarm training.', category: 'Equipment', subType: 'Electronic', complexity: 9, tags: ['infusion', 'drug', 'medication'] },
-                { id: 'E003', name: 'Laparoscope', description: 'High-fidelity surgical instrument model.', category: 'Equipment', subType: 'Tool', complexity: 4, tags: ['surgery', 'scope', 'camera'] },
+                { id: 'E001', name: 'Defibrillator (AED)', description: 'Interactive model for shocking procedure training.', category: 'Equipment', subType: 'Electronic', complexity: 6, tags: ['heart', 'electric', 'emergency'], assetAddress: 'Equipment/AED_01' },
+                { id: 'E002', name: 'IV Pump', description: 'Detailed model for infusion rate and alarm training.', category: 'Equipment', subType: 'Electronic', complexity: 9, tags: ['infusion', 'drug', 'medication'], assetAddress: 'Equipment/IVPump_02' },
+                { id: 'E003', name: 'Laparoscope', description: 'High-fidelity surgical instrument model.', category: 'Equipment', subType: 'Tool', complexity: 4, tags: ['surgery', 'scope', 'camera'], assetAddress: 'Equipment/Laparoscope_01' },
             ],
             'Procedures': [
-                { id: 'P001', name: 'CPR Basic Life Support', description: 'Step-by-step 3D sequence of BLS compressions.', category: 'Procedures', subType: 'Animation', complexity: 7, tags: ['resuscitation', 'training', 'chest'] },
-                { id: 'P002', name: 'Surgical Gowning', description: 'Visualization of sterile field and donning process.', category: 'Procedures', subType: 'Tutorial', complexity: 3, tags: ['clean', 'sterile', 'scrubs'] },
+                { id: 'P001', name: 'CPR Basic Life Support', description: 'Step-by-step 3D sequence of BLS compressions.', category: 'Procedures', subType: 'Animation', complexity: 7, tags: ['resuscitation', 'training', 'chest'], assetAddress: 'Procedures/CPR_Animation_BLS' },
+                { id: 'P002', name: 'Surgical Gowning', description: 'Visualization of sterile field and donning process.', category: 'Procedures', subType: 'Tutorial', complexity: 3, tags: ['clean', 'sterile', 'scrubs'], assetAddress: 'Procedures/SurgicalGowning_Tutorial' },
             ]
         };
 
@@ -265,9 +266,15 @@
          * @param {object} asset - The full asset object to send to Unity.
          */
         function sendAssetDataToUnity(asset) {
-             // 1. Prepare the data payload (keys match the C# class structure)
+             // 1. Prepare the data payload 
+             // Using "Type" and "Address" keys as requested.
             const payloadObject = {
-                AssetType: asset.category,
+                // Denotes the category of the asset (Characters, Equipment, Procedures)
+                Type: asset.category, 
+                
+                // The Asset Address (e.g., Prefab path, Addressable key, or Scene name)
+                Address: asset.assetAddress, 
+                
                 AssetId: asset.id,
                 AssetComplexity: asset.complexity,
                 AdditionalData: `Viewing asset ${asset.id}`
@@ -288,6 +295,100 @@
         }
         // --- END Unity WebGL Logic ---
 
+        // Helper function to find an asset by its ID in the flat list
+        function findAssetById(id) {
+            return allAssets.find(asset => asset.id === id);
+        }
+
+        /**
+         * Starts the editing mode for the asset address.
+         * @param {string} assetId - The ID of the asset to edit.
+         */
+        function startEditAddress(assetId) {
+            const asset = findAssetById(assetId);
+            if (!asset) return;
+
+            const displayContainer = document.getElementById('display-address');
+            const editContainer = document.getElementById('edit-address');
+
+            if (displayContainer && editContainer) {
+                displayContainer.classList.add('hidden');
+                editContainer.classList.remove('hidden');
+
+                editContainer.innerHTML = `
+                    <div class="flex space-x-2">
+                        <input type="text" id="new-address-input" value="${asset.assetAddress}" 
+                            class="flex-grow p-2 border border-indigo-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm shadow-sm"
+                            placeholder="Enter new asset address (e.g., Characters/NewModel_01)">
+                        <button onclick="saveNewAddress('${assetId}')" class="px-3 py-1 bg-indigo-500 text-white text-sm font-medium rounded-lg hover:bg-indigo-600 transition duration-150 shadow-md">
+                            Save
+                        </button>
+                        <button onclick="cancelEditAddress('${assetId}')" class="px-3 py-1 bg-gray-300 text-gray-800 text-sm font-medium rounded-lg hover:bg-gray-400 transition duration-150">
+                            Cancel
+                        </button>
+                    </div>
+                `;
+                document.getElementById('new-address-input').focus();
+            }
+        }
+
+        /**
+         * Saves the new asset address to the global data structures.
+         * @param {string} assetId - The ID of the asset to save.
+         */
+        function saveNewAddress(assetId) {
+            const newAddressInput = document.getElementById('new-address-input');
+            const newAddress = newAddressInput ? newAddressInput.value.trim() : '';
+
+            if (!newAddress) {
+                // Replace alert() with a console error and visual cue
+                console.error("Asset Address cannot be empty. Reverting edit.");
+                
+                // You could add a temporary message here (e.g., a div that flashes red text).
+                
+                cancelEditAddress(assetId);
+                return;
+            }
+
+            // 1. Update the flat list (allAssets)
+            const assetToUpdate = findAssetById(assetId);
+            if (assetToUpdate) {
+                assetToUpdate.assetAddress = newAddress;
+
+                // 2. Update the structured ASSETS object (for integrity)
+                const category = assetToUpdate.category;
+                const index = ASSETS[category].findIndex(a => a.id === assetId);
+                if (index > -1) {
+                    ASSETS[category][index].assetAddress = newAddress;
+                }
+
+                // 3. Re-render the UI
+                renderAssetDetails(assetToUpdate); // Re-render the detail panel
+                renderFilteredList(document.getElementById('asset-search').value); // Re-render the list to update the card
+            }
+        }
+
+        /**
+         * Cancels the editing mode for the asset address.
+         * @param {string} assetId - The ID of the asset to cancel editing for.
+         */
+        function cancelEditAddress(assetId) {
+            const asset = findAssetById(assetId);
+            if (!asset) return;
+
+            const displayContainer = document.getElementById('display-address');
+            const editContainer = document.getElementById('edit-address');
+
+            if (displayContainer && editContainer) {
+                // Ensure the current address text is correct before reverting
+                document.getElementById('current-address').textContent = asset.assetAddress;
+                
+                editContainer.classList.add('hidden');
+                displayContainer.classList.remove('hidden');
+            }
+        }
+
+
         /**
          * Renders the details of a selected asset and sets up the viewer button.
          * @param {object} asset - The asset object.
@@ -303,6 +404,25 @@
                         <p class="text-gray-600">${asset.description}</p>
                         <p class="text-sm text-gray-500 mt-3">Complexity: ${asset.complexity} | Sub-Type: ${asset.subType || 'N/A'}</p>
                         <p class="text-sm text-gray-500 mt-1">Tags: ${asset.tags ? asset.tags.join(', ') : 'None'}</p>
+                        
+                        <!-- Asset Address Edit Area -->
+                        <div id="address-container" class="mt-3 py-1">
+                            <!-- Display Mode -->
+                            <div id="display-address" class="flex justify-between items-center">
+                                <p class="text-sm text-gray-700">
+                                    <span class="font-semibold text-gray-500">Asset Address:</span> 
+                                    <span id="current-address">${asset.assetAddress}</span>
+                                </p>
+                                <button onclick="startEditAddress('${asset.id}')" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium p-1 rounded-md transition duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    Edit
+                                </button>
+                            </div>
+                            <!-- Edit Mode (Initially Hidden) -->
+                            <div id="edit-address" class="hidden">
+                                <!-- Content generated by startEditAddress function -->
+                            </div>
+                        </div>
+                        <!-- End Asset Address Edit Area -->
                     </div>
 
                     <div class="mt-8">
@@ -362,7 +482,8 @@
             if (searchTerm) {
                 const lowerSearchTerm = searchTerm.toLowerCase();
                 currentList = currentList.filter(asset => {
-                    const searchString = `${asset.name} ${asset.id} ${asset.description} ${asset.subType} ${asset.tags ? asset.tags.join(' ') : ''}`.toLowerCase();
+                    // Added assetAddress to the search string for comprehensive searching
+                    const searchString = `${asset.name} ${asset.id} ${asset.description} ${asset.subType} ${asset.tags ? asset.tags.join(' ') : ''} ${asset.assetAddress || ''}`.toLowerCase();
                     return searchString.includes(lowerSearchTerm);
                 });
             }
@@ -377,7 +498,7 @@
                     button.innerHTML = `
                         <div class="flex flex-col">
                             <span class="font-bold text-base text-indigo-700">${asset.name}</span>
-                            <span class="text-xs text-gray-500 mt-1">ID: ${asset.id} | Type: ${asset.category} | Tags: ${asset.tags ? asset.tags.join(', ') : 'None'}</span>
+                            <span class="text-xs text-gray-500 mt-1">ID: ${asset.id} | Type: ${asset.category} | Address: ${asset.assetAddress || 'N/A'}</span>
                             <span class="text-sm text-gray-600 mt-1">${asset.description.substring(0, 80)}...</span>
                         </div>
                     `;
