@@ -123,7 +123,7 @@
         
         <div class="p-4 bg-gray-800 text-white flex justify-between items-center shadow-lg border-b border-gray-700">
             <h3 id="panel-title" class="text-xl font-semibold text-emerald-400">3D Viewer: (Asset Name)</h3>
-            <button onclick="toggleUnityPanel(false)" class="p-1 rounded-full hover:bg-gray-700 transition-colors">
+            <button onclick="window.toggleUnityPanel(false)" class="p-1 rounded-full hover:bg-gray-700 transition-colors">
                 <!-- Close Icon (X) -->
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
@@ -159,12 +159,14 @@
         // --- UPDATED MOCK ASSET DATA (Now a flat array with 'category' and 'subcategory') ---
         const ASSETS_DATA = [
             // Environments
-            { id: 'ENV01', name: 'Standard Operating Room', description: 'Full room environment for surgical training.', category: 'Environments', subcategory: 'Scene', subType: 'Room', complexity: 9, tags: ['OR', 'room', 'surgery'], assetAddress: 'Environments/OperatingRoom_01' },
+            { id: 'ENV01', name: 'Waiting Room', description: 'Full room environment for surgical training.', category: 'Environments', subcategory: 'Scene', subType: 'Room', complexity: 9, tags: ['OR', 'room', 'surgery'], assetAddress: 'env_simx_waiting_room' },
+            { id: 'ENV01A', name: 'CASEVAC', description: 'Very busy large environment', category: 'Environments', subcategory: 'Scene', subType: 'Room', complexity: 9, tags: ['OR', 'room', 'surgery'], assetAddress: 'env_casevac_master' },
             { id: 'ENV02', name: 'ICU Bedside Prop Kit', description: 'Small props for bedside training environment setup.', category: 'Environments', subcategory: 'Environment Props', subType: 'Props', complexity: 4, tags: ['icu', 'props', 'bed'], assetAddress: 'Environments/ICU_PropKit' },
             { id: 'ENV03', name: 'Laparoscopy Authoring Template', description: 'Pre-authored environment for specific procedure.', category: 'Environments', subcategory: 'Authored Environments', subType: 'Template', complexity: 6, tags: ['laparoscopy', 'template'], assetAddress: 'Environments/Laparoscopy_Template' },
 
             // Tools (Mapped from old Equipment/Procedures)
-            { id: 'T001', name: 'Defibrillator (AED)', description: 'Interactive model for shocking procedure training.', category: 'Tools', subcategory: 'Tools', subType: 'Electronic', complexity: 6, tags: ['heart', 'electric', 'emergency'], assetAddress: 'Equipment/AED_01' },
+            { id: 'T001', name: 'Defibrillator (AED)', description: 'Interactive model for shocking procedure training.', category: 'Tools', subcategory: 'Tools', subType: 'Tool', complexity: 6, tags: ['heart', 'electric', 'emergency'], assetAddress: 'tool_defibrillator_monitor_small' },
+            { id: 'T001A', name: 'Scalpel', description: 'Look out! Sharp!', category: 'Tools', subcategory: 'Tools', subType: 'Tool', complexity: 6, tags: ['small'], assetAddress: 'tool_scalpal_10' },
             { id: 'T002', name: 'IV Pump', description: 'Detailed model for infusion rate and alarm training.', category: 'Tools', subcategory: 'Tools', subType: 'Electronic', complexity: 9, tags: ['infusion', 'drug', 'medication'], assetAddress: 'Equipment/IVPump_02' },
             { id: 'T003', name: 'Empty Syringe Vessel', description: 'Standard empty vessel model for liquid injection.', category: 'Tools', subcategory: 'Empty Vessels', subType: 'Container', complexity: 2, tags: ['syringe', 'injection', 'empty'], assetAddress: 'Tools/Syringe_Empty' },
             { id: 'T004', name: 'CPR Basic Life Support Sequence', description: 'Step-by-step 3D sequence of BLS compressions.', category: 'Tools', subcategory: 'Procedures', subType: 'Animation', complexity: 7, tags: ['resuscitation', 'training', 'chest'], assetAddress: 'Procedures/CPR_Animation_BLS' },
@@ -321,6 +323,9 @@
                 UnityInstance = null;
             }
         }
+        // Expose the function globally for use in HTML inline onclick handlers
+        window.toggleUnityPanel = toggleUnityPanel; 
+
 
         /**
          * Loads or initializes the Unity WebGL application and sends the asset data.
@@ -360,7 +365,7 @@
         function sendAssetDataToUnity(asset) {
             // Note: The category property is passed here, now representing the main category.
             const payloadObject = {
-                Type: asset.category, 
+                Type: asset.subcategory, 
                 Address: asset.assetAddress, 
                 AssetId: asset.id,
                 AssetComplexity: asset.complexity,
@@ -520,7 +525,7 @@
                     <div class="mt-8">
                         <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-3">Asset Manipulation</h3>
                         <!-- Button calls a function to pass the full asset object (JSON encoded) -->
-                        <button onclick='toggleUnityPanel(true, "${asset.name}", ${JSON.stringify(asset)})' 
+                        <button onclick='window.toggleUnityPanel(true, "${asset.name}", ${JSON.stringify(asset)})' 
                                 class="px-6 py-3 bg-emerald-500 text-gray-900 font-bold text-lg rounded-xl hover:bg-emerald-600 transition duration-200 shadow-lg flex items-center">
                             <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             Launch 3D WebGL Viewer
